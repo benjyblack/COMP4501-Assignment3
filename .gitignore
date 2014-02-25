@@ -1,0 +1,11 @@
+Sounds/
+Textures/
+Worlds/
+Debug/
+PhysX Documentation/
+PhysXDLLs/
+Release/
+SDKLib/
+SDKs/
+*.sdf
+*.opensdf
