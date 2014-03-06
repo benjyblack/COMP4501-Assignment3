@@ -29,6 +29,12 @@ void main (){
 	vec3 worldPosition = vertex * lightScale + lightPosition;
 	vec4 clipPosition = gl_ModelViewProjectionMatrix * vec4 (worldPosition, 1.0);
 
+	// Check if sphere will be clipped, adjust
+	if (-clipPosition.z > clipPosition.w) { 
+		clipPosition.w = 1;
+		clipPosition.z = -1;
+	}
+
 	#if (CAPTURE_WORLD_POSITION_CS)
 		//NOT YET DONE...
 	#endif //CAPTURE_WORLD_POSITION_CS

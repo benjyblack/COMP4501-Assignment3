@@ -148,8 +148,8 @@ void Game::draw () {
 			switch (drawingChoice) {
 				case UseNormalDrawing: 
 					world->draw (); 
-					if (drawFuzzBallsInNormalDraw) {drawAllLightFuzzBallsInNormalWorld ();} else
-					if (drawLightSpheresInNormalDraw) {drawAllLightSpheresInNormalWorld ();}
+					if (drawFuzzBallsInNormalDraw) {drawAllLightFuzzBallsInNormalWorld ();} 
+					else if (drawLightSpheresInNormalDraw) {drawAllLightSpheresInNormalWorld ();}
 					break;
 				case UseIndexedLights: 
 					drawColoredLights (world); 

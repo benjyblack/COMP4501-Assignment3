@@ -34,24 +34,28 @@ vec3 attenuatedLightColor (vec3 pixelPositionCS, float lightIndex, out vec3 pixe
 			//Pretend it's black... with no attenuation...
 			return vec3 (0.0, 0.0, 0.0);
 		#else
-			
-			// **************************************************************************************************
-			// NOT DONE NOT DONE NOT DONE NOT DONE NOT DONE NOT DONE NOT DONE NOT DONE NOT DONE NOT DONE NOT DONE
-			// I've retained the comments I used... Use them as a guide; AFTER, DELETE THESE 3 LINES...
-			return vec3 (1.0, 0.0, 1.0); //DELETE THIS TOO...
-			
+			/////
 			//Fetch the light position from the LightPositionTexture and use it to compute a pixel to light vector (not normalized)...
 			//Recall that the rgba texture contains xyzs where s is the scale factor to scale the light model's unit sphere.
-				
+			vec4 lightPosition = texelFetch(LightPositionTexture, ivec2(lightIndex, 0), 0);
+		
 			//Extract the light radius from the scale in light position's.a; A unit sphere scaled by s has radius s * 0.5.
-				
+			float lightRadius = lightPosition.a*0.5;
+
 			//Fetch the light color from the LightColorTexture texture...
+			vec4 lightColor = texture2D(LightColorTexture, vec2(lightIndex, 0.0));
 
 			//Build an interpolation t which is the "distance to the light" / "light radius"
 			//and use it to construction an attenuation factor that interpolates from 1 when t=0 to 0 when t=1 and clamps to 0 for t>1.
 			//So we go from full brightness at the position of the light to zero at the radius and beyond...
 			
+			//pixelToLightCS = vec3(lightPosition.xyz - pixelPositionCS);
+			float squareDistanceToLight = dot(pixelToLightCS, pixelToLightCS);
+		
+			float t = sqrt(squareDistanceToLight/(lightRadius*lightRadius));
+
 			//Return the attenuated color...
+			return lightColor.rgb;
 		
 	#endif //EXPERIMENT
 }
@@ -60,7 +64,7 @@ vec3 attenuatedLightColor (vec3 pixelPositionCS, float lightIndex, out vec3 pixe
 #define USE_DIRECTION_SENSITIVE_DIFFUSE 0
 #define USE_DIRECTION_INSENSITIVE_DIFFUSE 1
 #define USE_EMISSIVE 2
-#define AMBIENT_TYPE USE_DIRECTION_SENSITIVE_DIFFUSE
+#define AMBIENT_TYPE USE_EMISSIVE
 
 void main () {
 	//When a vector is interpolated, it's length changes so renormalize direction vectors used for lighting...

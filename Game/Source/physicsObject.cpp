@@ -52,3 +52,13 @@ void Sphere::playerThrowSphere () {
 	physicsManager->add (sphere->physicsSphere);
 	game->world->addDynamicObject (sphere); //The world now owns the Sphere and will tick, draw, and delete it.
 }
+
+Sphere* Sphere::generateAt(Point p) { 
+	if (game->world == NULL || physicsManager->scene == NULL) return NULL;
+	
+	Sphere *sphere = new Sphere (p, Vector(1.0,1.0,1.0), 0.5, 0.5, 0.5, 1.0); //width, height, depth, mass
+	physicsManager->add (sphere->physicsSphere);
+	game->world->addDynamicObject (sphere);
+
+	return sphere;
+}

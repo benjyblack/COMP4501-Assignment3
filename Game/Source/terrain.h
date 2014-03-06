@@ -72,7 +72,7 @@ public:
 	long physicsCoordinateFor (long x, long y) {//where [x,y] are height map coordinate... //WILF PhysX...
 		//With the bottom left as the origin of the terrain, y increases going up... In PhysX, the top left is the origin with y increasing going down..
 		//So y increasing from 0, 1, 2, 3, ... in the terrain requires a matching y in PhysX that goes 1024, 1023, 1022, ...
-		//Also, physX uses a column based representation where increasing x by 1 jumps by one whole column (one height). 
+		//Also, physX uses a column based representation where increasing x by 1 jumps by one whole cobuilumn (one height). 
 		//The terrain by contrast uses a row based representation where jumping y by 1 causes a jump by one whole row (one width)
 		return (heightMapHeight - 1 - y) + x * heightMapHeight;
 	}

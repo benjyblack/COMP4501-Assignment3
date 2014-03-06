@@ -110,7 +110,7 @@ PxRigidStatic *PhysicsManager::physicsTerrain (Terrain *terrain) {
 	PxRigidStatic *terrainActor = physicsSystem->createRigidStatic(asTransform(fromTransformation)); //You need to create it using the proper code...
 
 	//But the actor's shape is responsible for collision detection, so we create a shape containing the height field and an appropriate friction based material...
-	PxMaterial* terrainMaterial = physicsSystem->createMaterial(0.5f,0.5f,0.1f);
+	PxMaterial* terrainMaterial = physicsSystem->createMaterial(0.1f,0.1f,1.5f);
 	PxShape* terrainShape = terrainActor->createShape(PxHeightFieldGeometry(heightField, PxMeshGeometryFlags(), physXYScale, physXXScale, physXZScale), *terrainMaterial);
 	
 	scene->addActor(*terrainActor);
@@ -182,7 +182,7 @@ PxRigidStatic *PhysicsManager::physicsMesh (World *world) {
 	fromTransformation.preTranslateBy(Point(0,0,0));
 
 	PxRigidStatic* triangleMeshActor = physicsSystem->createRigidStatic(asTransform(fromTransformation)); //You need to create it using the proper code...
-	PxMaterial* triangleMeshMaterial = physicsSystem->createMaterial(0.5f,0.5f,0.1f); 
+	PxMaterial* triangleMeshMaterial = physicsSystem->createMaterial(0.1f,0.1f,10.0f); 
 
 	PxShape* triangleMeshShape = triangleMeshActor->createShape(PxTriangleMeshGeometry(triangleMesh), *triangleMeshMaterial);
 
@@ -229,7 +229,7 @@ PxRigidDynamic *PhysicsManager::physicsSphere (Point &position, Vector &velocity
 
 	PxRigidDynamic* sphereActor = physicsSystem->createRigidDynamic(asTransform(fromTransformation)); //You need to create it using the proper code...
 
-	PxMaterial* sphereMaterial = physicsSystem->createMaterial(0.5f,0.5f,0.1f);
+	PxMaterial* sphereMaterial = physicsSystem->createMaterial(0.1f,0.1f,1.5f);
 
 	PxShape* sphereShape = sphereActor->createShape(PxSphereGeometry(diameter/2), *sphereMaterial);
 

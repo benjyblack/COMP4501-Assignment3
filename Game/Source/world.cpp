@@ -196,19 +196,19 @@ void World::finalize () {
 		physicsManager->add (physicsPlane);
 	}
 
-	for (int i = 0; i < 5; i++)
-	{
-		for (int j = 0; j < 30; j++)
-		{
-			for (int k = 0; k < 5; k++)
-			{
-				Cube *cube = new Cube (Point(k*0.5,j*0.5 - 5,i*0.5), Vector(0,0,0), 0.5, 0.5, 0.5, 1.0); //width, height, depth, mass
-				cube->physicsCube->putToSleep();
-				physicsManager->add (cube->physicsCube);
-				addDynamicObject (cube); //The world now owns the cube and will tick, draw, and delete it.
-			}
-		}
-	}
+	//for (int i = 0; i < 5; i++)
+	//{
+	//	for (int j = 0; j < 30; j++)
+	//	{
+	//		for (int k = 0; k < 5; k++)
+	//		{
+	//			Cube *cube = new Cube (Point(k*0.5,j*0.5 - 5,i*0.5), Vector(0,0,0), 0.5, 0.5, 0.5, 1.0); //width, height, depth, mass
+	//			cube->physicsCube->putToSleep();
+	//			physicsManager->add (cube->physicsCube);
+	//			addDynamicObject (cube); //The world now owns the cube and will tick, draw, and delete it.
+	//		}
+	//	}
+	//}
 
 	//The rest has nothing to do with PhysX...
 	camera->reset (); player->reset (startPosition);

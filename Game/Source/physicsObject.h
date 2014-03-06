@@ -43,6 +43,7 @@ public:
 	Transformation transformation () {return asTransformation (physicsSphere->getGlobalPose ());}
 	
 	static void Sphere::playerThrowSphere (); //Special demo code...
+	static Sphere* Sphere::generateAt(Point p);
 
 	void tick () {} //Runs on its own... so there is nothing to do...
 	void draw ();

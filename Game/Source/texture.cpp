@@ -356,14 +356,10 @@ void Texture::load (bool mipmapping, bool forceClamp, long filter) {
 	GLint minFilter;
 	if (mipmapping)
 	{
-		if (filter == GL_LINEAR)
-			minFilter = GL_LINEAR_MIPMAP_LINEAR;
-		else if (filter == GL_NEAREST)
-			minFilter = GL_NEAREST_MIPMAP_NEAREST;
-			
+		if (filter == GL_LINEAR) minFilter = GL_LINEAR_MIPMAP_LINEAR;
+		else minFilter = GL_LINEAR_MIPMAP_NEAREST;
 	}
-	else
-	{
+	else {
 		minFilter = filter;
 	}
 	glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
