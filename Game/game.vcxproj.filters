@@ -268,5 +268,20 @@
     <None Include="..\..\..\..\..\..\Downloads\Uploads2\LightIndexedRenderingShaders\verifyLightIndex.vert">
       <Filter>Shaders - Light Indexed</Filter>
     </None>
+    <None Include="..\Shaders\hpcv-water-tile.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\Shaders\hpcv-water-tile.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\Shaders\wilf-lalonde-water-tile.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\Shaders\verifyLightIndex.frag">
+      <Filter>Shaders - Light Indexed</Filter>
+    </None>
+    <None Include="..\Shaders\verifyLightIndex.vert">
+      <Filter>Shaders - Light Indexed</Filter>
+    </None>
   </ItemGroup>
 </Project>

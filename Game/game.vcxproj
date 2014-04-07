@@ -208,6 +208,11 @@
     <None Include="..\Shaders\drawZPrepass.frag" />
     <None Include="..\Shaders\drawZPrepass.vert" />
     <None Include="..\Shaders\encodeLightIndex.function" />
+    <None Include="..\Shaders\hpcv-water-tile.frag" />
+    <None Include="..\Shaders\hpcv-water-tile.vert" />
+    <None Include="..\Shaders\verifyLightIndex.frag" />
+    <None Include="..\Shaders\verifyLightIndex.vert" />
+    <None Include="..\Shaders\wilf-lalonde-water-tile.frag" />
     <None Include="..\Shaders\WilfLightIndexDrawingLibrary.all" />
     <None Include="..\Shaders\WilfLightingLibrary.all" />
     <None Include="Source\includes.all" />

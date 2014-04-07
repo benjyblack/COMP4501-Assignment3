@@ -1,0 +1,83 @@
+//Wilf's shadow mapping library...
+
+//Missing functions...
+vec2 frac (vec2 uv) {return mod (uv, 1.0);}
+
+//Shadow mapping (and spotlight) utilities...
+bool inSpotLight (vec3 normalizedPixelToLight, vec3 normalizedSpotlightDirection, float coneAngleAsCosine) {
+	//If we negate "normalizedPixelToLight", both vectors point away from the light.
+	//Note that (-A).B = -(A.B) and A.B = |A||B| cos angle = cos angle; cosine(45 degrees) = 0.707, cosine(0 degrees) = 1.0.
+	//So cos angle = -(A.B); since cosine(90 degrees) = 0.0 AND cosine(0 degrees) = 1.0, if the cosine is larger, 
+	//the angle is smaller and so the normalizedPixelToLight direction is INSIDE...
+	return -dot (normalizedPixelToLight, normalizedSpotlightDirection) > coneAngleAsCosine;
+}
+
+bool canSeeLight (vec3 pixelToLightCS, vec3 pixelNormalCS, vec3 normalizedSpotlightDirection, float coneAngleAsCosine) {
+	//Ignoring blockers, in the spot light's cone angle and facing the light...
+	return 
+		inSpotLight (pixelToLightCS, normalizedSpotlightDirection, coneAngleAsCosine) &&
+		alignedWith (pixelToLightCS, pixelNormalCS); 
+}
+
+float amountInShadowViaShadow2DProj (sampler2DShadow shadowMap, vec4 positionLPS, float epsilon) {
+	//Remember: depth 0 is near, depth 1 is far...
+	//The following is not needed if "includeConversionToShadowMapTextureCoordinates" is true...
+	
+	//When includeConversionToShadowMapTextureCoordinates is false...
+	vec4 uv = vec4 ((0.5 * (positionLPS.xyz / positionLPS.w) + 0.5), 1.0); //deuce box
+//	vec4 uv = vec4 ((0.5 * (positionLPS.xy / positionLPS.w) + 0.5), positionLPS.z / positionLPS.w, 1.0); //xy deuce but z 0/1 (doesn't work)...
+
+	//When includeConversionToShadowMapTextureCoordinates is true...
+	//vec4 uv = positionLPS;
+	
+	//float lightIntensity = textureProj (shadowMap, uv, epsilon).r;
+	#if (version == 0) //No bias
+		float lightIntensity = textureProj (shadowMap, uv);
+	#elif (version == 1) //Use bias 
+		#define EPSILON 0.01
+		float bias = EPSILON * uv.w;
+		float lightIntensity = textureProj (shadowMap, uv - vec4 (0.0, 0.0, bias, 0.0));
+	#elif (version == 2) //No bias; drawing back faces (see flipWindingOrder in drawWorldFromSpotlight).
+		float lightIntensity = textureProj (shadowMap, uv);
+	#elif (version == 3) //No bias; drawing back faces; using more probes.
+		float lightIntensity = 0.0;
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 (-1, -1));
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 (+1, -1));
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 (+1, +1));
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 (-1, +1));
+		lightIntensity *= 0.25;
+	#elif (version == 4 || version == 5) //No bias; drawing back faces; using more probes.
+		/*
+		float lightIntensity = 0.0; int totalWeight = 0;
+		for (int x = -1; x <= +1; x++) {
+			for (int y = -1; x <= +1; x++) {
+				int weight = (x == 0 && y == 0)
+					? 4
+					: ((x == 0 && y != 0) || (y == 0 && x != 0)
+						? 2
+						: 1);
+				totalWeight += weight;
+				lightIntensity += textureProjOffset (shadowMap, uv, ivec2 (x, y)) * weight;
+			}
+		}
+		lightIntensity *= totalWeight;
+		*/
+		float lightIntensity = 0.0;
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 (-1, -1));
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 ( 0, -1)) * 2;
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 (+1, -1));
+		
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 (-1, 0)) * 2;
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 ( 0, 0)) * 4;
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 (+1, 0)) * 2;
+		
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 (-1, +1));
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 ( 0, +1)) * 2;
+		lightIntensity += textureProjOffset (shadowMap, uv, ivec2 (+1, +1));
+		lightIntensity *= (1.0 / 16.0);
+	#else
+		//For [x,y,z,w] z part is z/w. For [x,y,z,w]+[0,0,0.01w,0], z part is (z+.01w)/w = z/w+.01.
+		float lightIntensity = textureProj (shadowMap, uv -	vec4 (0.0,0.0,0.01*uv.w,0.0));
+	#endif //version
+	return lightIntensity;
+}

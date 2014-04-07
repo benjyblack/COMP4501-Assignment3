@@ -1,0 +1,128 @@
+//Wilf's lighting library...
+
+//-------------------------------------------------------------------------------------
+
+//Constants and utilities
+#define interpolate mix
+#define clamp01(x) clamp (x, 0.0, 1.0)
+
+//Coloring routine for debugging...
+
+vec4 colorForPositiveInteger (int integer, int integerLimit) {
+	integer = clamp (integer, 0, integerLimit);
+	float quarter = integerLimit * 0.25; float halfway = quarter * 0.5;
+	float quarterReciprocal = 1.0 / quarter;
+	#define test(case) integer < (quarter * case)
+	#define color(case) (halfway + (integer - (quarter * case))) * quarterReciprocal
+	if (test(1)) return vec4 (color(0),0,0,1); //reddish (dark to bright)
+	if (test(2)) return vec4 (0,color(1),0,1); //greenish (dark to bright)
+	if (test(3)) return vec4 (0,0,color(2),1); //bluish (dark to bright)
+	return vec4 (color(3),color(3),color(3),1); //grayish (dark to white)
+	#undef test
+	#undef color
+}
+
+//-------------------------------------------------------------------------------------
+
+//Lighting routines...
+
+//Define the ambient/diffuse/specular specifics for this application....
+//vec4 Ka () {return g_vMaterial * g_vLightAmbient;}
+//vec4 Kd () {return g_vMaterial * (1 - g_vLightAmbient);}
+//vec4 Ks () {return vec4 (0,0,0,0);} 
+//float specularExponent = 60.0;
+
+//Values obtained from default shader...
+#ifdef USING_DEFAULT_SHADER
+	vec4 Ka () {return ambient;}
+	vec4 Kd () {return diffuse;}
+	vec4 Ks () {return specular;}
+	float specularExponent = shininess;
+#else
+	#ifdef USING_LIGHT_INDEXED_DRAWING
+		#define Ka() (vec4 (0.4, 0.4, 0.4, 1.0))
+		#define Kd() (vec4 (lightColor * vec3 (0.8, 0.8, 0.8), 1.0))
+		vec4 Ks () {return vec4 (0.6,0.6,0.6,1.0);} 
+		float specularExponent = 16.0; 
+	#else 
+		#ifdef USING_SHADOW_DRAWING
+			//#define Ka() (vec4 (0.4, 0.4, 0.4, 1.0))
+			#define Ka() (vec4 (0.2, 0.2, 0.2, 1.0))
+			#define Kd() (vec4 (0.8, 0.8, 0.8, 1.0))
+			vec4 Ks () {return vec4 (0.6,0.6,0.6,1.0);} 
+			float specularExponent = 16.0; 
+		#endif
+	#endif
+#endif
+
+//Light functions from lighting for dummies...
+
+vec4 ambientColor () {return Ka ();}
+vec4 diffuseColor (vec3 pixelNormal, vec3 normalizedToLight) {
+	return Kd () * clamp01 (dot (pixelNormal, normalizedToLight));
+}
+vec4 diffuseColor (vec3 pixelNormal, vec3 normalizedToLight, float shadowIntensity) {  
+	return diffuseColor (pixelNormal, normalizedToLight) * shadowIntensity;
+}
+vec4 specularColor (vec3 pixelNormal, vec3 normalizedToLight, vec3 normalizedToCamera) { 
+	//Uses Blinn-Phong’s halfway vector...
+	vec3 halfway = normalize (normalizedToLight + normalizedToCamera);
+	float intensity = pow (clamp01 (dot (halfway, pixelNormal)), specularExponent);
+	//if (dot (pixelNormal, normalizedToLight) <= 0.0) intensity = 0.0;
+	return Ks () * intensity;
+} 
+
+//All vectors below are assumed to be normalized...
+vec4 combinedColor (vec4 textureColor, vec3 pixelNormalCS, vec3 pixelToLightCS, vec3 pixelToCameraCS, float shadowBrightness) {
+	return 
+		textureColor * (ambientColor () + diffuseColor (pixelNormalCS, pixelToLightCS, shadowBrightness))
+		;//+ specularColor (pixelNormalCS, pixelToLightCS, pixelToCameraCS); 
+}
+
+vec4 ambientFreeCombinedColor (vec4 textureColor, vec3 pixelNormalCS, vec3 pixelToLightCS, vec3 pixelToCameraCS, float shadowBrightness) {
+	return 
+		textureColor * (/*ambientColor () +*/ diffuseColor (pixelNormalCS, pixelToLightCS, shadowBrightness))
+		;//+ specularColor (pixelNormalCS, pixelToLightCS, pixelToCameraCS); 
+}
+
+vec4 ambientFreeAndDirectionInsensitiveDiffuseCombinedColor (vec4 textureColor, vec3 pixelNormalCS, vec3 pixelToLightCS, vec3 pixelToCameraCS, float shadowBrightness) {
+	return 
+		textureColor * (/*ambientColor () +*/ Kd () * shadowBrightness)
+		;//+ specularColor (pixelNormalCS, pixelToLightCS, pixelToCameraCS); 
+}
+
+
+//ShadowMap variations to eliminate specular color... and provide an unlit version.
+vec4 combinedColor (vec4 textureColor, vec3 pixelNormalCS, vec3 pixelToLightCS, float shadowBrightness) {
+	return 
+		textureColor * (ambientColor () + diffuseColor (pixelNormalCS, pixelToLightCS, shadowBrightness));
+}
+
+vec4 combinedColor (vec4 textureColor) {
+	return 
+		textureColor * (ambientColor ());
+}
+
+//-------------------------------------------------------------------------------------
+
+//Utility routines...
+
+bool alignedWith (vec3 a, vec3 b) {//Vectors pointing in the same direction.
+	//Since A.B = |A||B|cos angle and cos (0 to 90 degrees) is positive; otherwise negative.
+	//In degrees, cos (0) = 1, cos (45) = 0.707, cos (90) = 0, cos (135) = -0.707, cos (180) = -1.
+	return dot (a, b) > 0.0;
+}
+bool alignedAgainst (vec3 a, vec3 b) {return !alignedWith (a, b);}
+
+
+vec3 vectorProjection (vec3 A, vec3 normalizedB) {
+	//Projection of vector A onto normalized vector B.
+	//If angle between A and B is theta, proj of A on unit vector B is A's shadow 
+	//	= |A|cos (theta) = |A||B|cos (theta) (since |B|=1) = A.B
+	return dot (A, normalizedB) * normalizedB; //The projection is in the direction of B...
+}
+
+vec3 vectorShadow (vec3 A, vec3 normalizedB) {return vectorProjection (A, normalizedB);}
+vec3 vectorHeight (vec3 A, vec3 normalizedB) {return A - vectorShadow (A, normalizedB);}
+
+float squaredDistance (vec3 point1, vec3 point2) {vec3 delta = point2 - point1; return dot (delta, delta);}
